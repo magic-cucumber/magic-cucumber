@@ -68,13 +68,24 @@ const submit = async () => {
     instance.write(chunk)
   }
 
-  const error = await Promise.all(handlers.value.map((handler) => handler(rawCommand, sender)))
-      .then(() => undefined)
-      .catch((e: Error) => e)
+  loop: for (const handler of handlers.value) {
+    const result = await Promise.resolve(handler(rawCommand, sender)).catch((err: Error) => err)
+    switch (typeof result) {
+      case 'boolean': { //boolean根据返回值 继续处理/不处理
+        if (!result) {
+          continue
+        }
+        break loop
+      }
+      case 'object': { //object为error, 打印错误后不继续处理
+        sender('\n')
+        sender(color(`error on processing command!\n${result.stack}`, ansi.red))
+        break loop
+      }
+      case 'undefined': { //undefined视为继续处理
 
-  if (error != undefined) {
-    sender('\n')
-    sender(color(`error on processing command!\n${error.stack}`,ansi.red))
+      }
+    }
   }
 
   if (pendingOutput) {

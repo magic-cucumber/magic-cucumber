@@ -1,6 +1,9 @@
 export type TerminalSender = (chunk: string) => void
 
-export type TerminalAction = (command: string, sender: TerminalSender) => void | Promise<void>
+// 返回false证明该函数不处理, 交给下一个函数处理
+export type TerminalActionResult = boolean | Promise<boolean> | void | Promise<void>
+
+export type TerminalAction = (command: string, sender: TerminalSender) => TerminalActionResult
 
 export const ansi = {
   reset: '\x1b[0m',

@@ -1,15 +1,25 @@
 <script setup lang="ts">
 import {ref} from 'vue'
 import TerminalPanel from './components/TerminalPanel.vue'
-import {ansi, color, type TerminalSender} from './utils/terminal'
-
-const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
+import fastfetch from "./utils/commands/fastfetch.ts";
+import {ansi, color} from "./utils/terminal.ts";
+import fallback from "./utils/commands/fallback.ts";
+import * as clear0 from "./utils/commands/clear.ts";
+import date from "./utils/commands/date.ts";
+import delay from "./utils/commands/delay.ts";
+import echo from "./utils/commands/echo.ts";
+import empty from "./utils/commands/empty.ts";
+import help from "./utils/commands/help.ts";
+import pwd from "./utils/commands/pwd.ts";
+import uname from "./utils/commands/uname.ts";
+import whoami from "./utils/commands/whoami.ts";
 
 const prompt = '(base) 886kagg@Ciallo ~ % '
 
-const fastfetchLines = [
+const buffer = ref('')
+const data = ref([
   `${color('Last login: Thu Mar 26 17:46:01 on ttys001', ansi.bold, ansi.green)}`,
-  `(base) 886kagg@Ciallo ~ % fastfetch`,
+  `${prompt}fastfetch`,
   `${color("                     ..'", ansi.lime)}          ${color('886kagg@Ciallo', ansi.bold, ansi.lime)}`,
   `${color('                 ,xNMM.', ansi.lime)}           ${color('--------------', ansi.bold, ansi.lime)}`,
   `${color('               .OMMMMo', ansi.lime)}            ${color('OS', ansi.bold, ansi.yellow)}: ${color('macOS Tahoe 26.4 (25E246) arm64', ansi.bold, ansi.lime)}`,
@@ -37,53 +47,10 @@ const fastfetchLines = [
   '',
   `${' '.repeat(34)}${color('   ', ansi.bgBlack)}${color('   ', ansi.bgRed)}${color('   ', ansi.bgGreen)}${color('   ', ansi.bgYellow)}${color('   ', ansi.bgBlue)}${color('   ', ansi.bgMagenta)}${color('   ', ansi.bgCyan)}${color('   ', ansi.bgWhite)}`,
   '',
-]
+])
 
-const terminalInput = ref('')
-const terminalData = ref(fastfetchLines)
 
-const runCommand = async (rawCommand: string, sender: TerminalSender) => {
-  const trimmed = rawCommand.trim()
-  const [command = '', ...args] = trimmed.split(/\s+/)
-  switch (command) {
-    case '':
-      return
-    case 'help':
-      sender('Available commands: fastfetch, clear, help, echo, pwd, whoami, uname, date, delay')
-      return
-    case 'fastfetch':
-      sender(fastfetchLines.slice(2).join('\n'))
-      return
-    case 'clear':
-      terminalData.value = []
-      return
-    case 'echo':
-      sender(args.join(' '))
-      return
-    case 'pwd':
-      sender('/Users/886kagg')
-      return
-    case 'whoami':
-      sender('886kagg')
-      return
-    case 'uname':
-      sender('Darwin Ciallo.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 26 17:46:01 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T8132 arm64')
-      return
-    case 'date':
-      sender(new Intl.DateTimeFormat('zh-CN', {
-        dateStyle: 'full',
-        timeStyle: 'medium',
-      }).format(new Date()))
-      return
-    case 'delay':
-      sender('waiting...')
-      await wait(3000)
-      sender(args.join(' ') || 'done')
-      return
-    default:
-      sender(`zsh: command not found: ${command}`)
-  }
-}
+const clear = clear0.default({clear: () => data.value = []})
 </script>
 
 <template>
@@ -99,10 +66,22 @@ const runCommand = async (rawCommand: string, sender: TerminalSender) => {
       </header>
 
       <TerminalPanel
-        v-model:data="terminalData"
-        v-model:command="terminalInput"
-        :prompt="prompt"
-        @action="runCommand"
+          v-model:data="data"
+          v-model:command="buffer"
+          :prompt="prompt"
+          :on-action="[
+              fastfetch,
+              clear,
+              date,
+              delay,
+              echo,
+              help,
+              pwd,
+              uname,
+              whoami,
+              empty,
+              fallback
+          ]"
       />
     </section>
   </main>
