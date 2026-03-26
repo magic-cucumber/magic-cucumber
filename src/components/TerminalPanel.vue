@@ -180,6 +180,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
   terminal.value?.dispose()
 })
+
+defineExpose(host)
 </script>
 
 <template>

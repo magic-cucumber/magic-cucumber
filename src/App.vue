@@ -12,6 +12,7 @@ import help from "@/utils/commands/help.ts";
 import pwd from "@/utils/commands/pwd.ts";
 import uname from "@/utils/commands/uname.ts";
 import whoami from "@/utils/commands/whoami.ts";
+import {useFullscreen} from "@vueuse/core";
 
 const prompt = '(base) 886kagg@Ciallo ~ % '
 
@@ -50,21 +51,42 @@ const data = ref([
 
 
 const clear = clear0.default({clear: () => data.value = []})
+
+
+const template = ref<HTMLElement | null>(null)
+
+
+const close = () => history.back()
+const mini = () => template.value?.blur()
+const {isFullscreen, enter, exit, isSupported} = useFullscreen(template)
+
+const toggle = () => {
+  if (!isSupported.value) {
+    alert('fullscreen is not supported')
+    return
+  }
+  if (isFullscreen.value) {
+    exit()
+  } else {
+    enter()
+  }
+}
 </script>
 
 <template>
   <main class="terminal-shell">
     <section class="terminal-frame">
       <header class="terminal-bar">
-        <div class="traffic-lights" aria-hidden="true">
-          <span class="traffic-light close"></span>
-          <span class="traffic-light minimize"></span>
-          <span class="traffic-light maximize"></span>
+        <div class="traffic-lights">
+          <span class="traffic-light close" title="Close" aria-label="Close" @click="close"></span>
+          <span class="traffic-light minimize" title="Minimize" aria-label="Minimize" @click="mini"></span>
+          <span class="traffic-light maximize" title="Zoom" aria-label="Zoom" @click="toggle"></span>
         </div>
         <p class="terminal-title">magic-cucumber's MacBook Air</p>
       </header>
 
       <TerminalPanel
+          ref="template"
           v-model:data="data"
           v-model:command="buffer"
           :prompt="prompt"

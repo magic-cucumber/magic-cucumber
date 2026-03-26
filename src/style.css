@@ -94,22 +94,65 @@ a {
 }
 
 .traffic-light {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 12px;
   height: 12px;
-  border-radius: 999px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter 0.16s ease;
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
 }
 
 .traffic-light.close {
-  background: #ff6b6b;
+  background: linear-gradient(180deg, #ff6d67 0%, #ed5b55 100%);
+  border-color: #d94b44;
 }
 
 .traffic-light.minimize {
-  background: #ffd166;
+  background: linear-gradient(180deg, #f6be4f 0%, #edae2f 100%);
+  border-color: #d59b2a;
 }
 
 .traffic-light.maximize {
-  background: #06d6a0;
+  background: linear-gradient(180deg, #62c755 0%, #4cb748 100%);
+  border-color: #40a53d;
+}
+
+.traffic-light::before {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(0, 0, 0, 0.62);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.traffic-light.close::before {
+  content: '×';
+}
+
+.traffic-light.minimize::before {
+  content: '−';
+}
+
+.traffic-light.maximize::before {
+  content: '+';
+}
+
+.traffic-lights:hover .traffic-light::before {
+  opacity: 1;
+}
+
+.traffic-light:hover {
+  filter: brightness(0.96);
 }
 
 .terminal-title {
