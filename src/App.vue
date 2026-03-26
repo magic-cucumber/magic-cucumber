@@ -8,7 +8,6 @@ import * as clear0 from "./utils/commands/clear.ts";
 import date from "./utils/commands/date.ts";
 import delay from "./utils/commands/delay.ts";
 import echo from "./utils/commands/echo.ts";
-import empty from "./utils/commands/empty.ts";
 import help from "./utils/commands/help.ts";
 import pwd from "./utils/commands/pwd.ts";
 import uname from "./utils/commands/uname.ts";
@@ -79,7 +78,6 @@ const clear = clear0.default({clear: () => data.value = []})
               pwd,
               uname,
               whoami,
-              empty,
               fallback
           ]"
       />
