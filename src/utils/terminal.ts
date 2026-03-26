@@ -7,6 +7,10 @@ export type TerminalAction = (command: string, sender: TerminalSender) => Termin
 
 export const ansi = {
   reset: '\x1b[0m',
+  italic: '\x1b[3m',
+  underline: '\x1b[4m',
+  inverse: '\x1b[7m',
+  strikethrough: '\x1b[9m',
   green: '\x1b[92m',
   lime: '\x1b[38;5;118m',
   yellow: '\x1b[38;5;184m',

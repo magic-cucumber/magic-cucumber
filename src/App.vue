@@ -12,12 +12,12 @@ import help from "@/utils/commands/help.ts";
 import pwd from "@/utils/commands/pwd.ts";
 import uname from "@/utils/commands/uname.ts";
 import whoami from "@/utils/commands/whoami.ts";
-import {useFullscreen} from "@vueuse/core";
+import {useFullscreen, useLocalStorage} from "@vueuse/core";
 
 const prompt = '(base) 886kagg@Ciallo ~ % '
 
-const buffer = ref('')
-const data = ref([
+const buffer = useLocalStorage('buffer','')
+const data = useLocalStorage('history',[
   `${color('Last login: Thu Mar 26 17:46:01 on ttys001', ansi.bold, ansi.green)}`,
   `${prompt}fastfetch`,
   `${color("                     ..'", ansi.lime)}          ${color('886kagg@Ciallo', ansi.bold, ansi.lime)}`,

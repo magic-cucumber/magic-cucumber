@@ -4,6 +4,7 @@ import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
 import {computed, onBeforeUnmount, onMounted, ref, shallowRef} from 'vue'
 import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
+import {WebLinksAddon} from "@xterm/addon-web-links/src/WebLinksAddon.ts";
 
 const props = withDefaults(defineProps<{
   prompt?: string
@@ -161,6 +162,7 @@ onMounted(() => {
 
   terminal.value = instance
   instance.loadAddon(fitAddon)
+  instance.loadAddon(new WebLinksAddon())
   instance.open(host.value!)
   instance.onData(appendInput)
   // 首次挂载按 data 回放历史，再打印当前 prompt。
