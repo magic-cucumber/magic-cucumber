@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-import TerminalPanel from './components/TerminalPanel.vue'
-import fastfetch from "./utils/commands/fastfetch.ts";
-import {ansi, color} from "./utils/terminal.ts";
-import fallback from "./utils/commands/fallback.ts";
-import * as clear0 from "./utils/commands/clear.ts";
-import date from "./utils/commands/date.ts";
-import delay from "./utils/commands/delay.ts";
-import echo from "./utils/commands/echo.ts";
-import help from "./utils/commands/help.ts";
-import pwd from "./utils/commands/pwd.ts";
-import uname from "./utils/commands/uname.ts";
-import whoami from "./utils/commands/whoami.ts";
+import TerminalPanel from '@/components/TerminalPanel.vue'
+import fastfetch from "@/utils/commands/fastfetch.ts";
+import {ansi, color} from "@/utils/terminal.ts";
+import fallback from "@/utils/commands/fallback.ts";
+import * as clear0 from "@/utils/commands/clear.ts";
+import date from "@/utils/commands/date.ts";
+import delay from "@/utils/commands/delay.ts";
+import echo from "@/utils/commands/echo.ts";
+import help from "@/utils/commands/help.ts";
+import pwd from "@/utils/commands/pwd.ts";
+import uname from "@/utils/commands/uname.ts";
+import whoami from "@/utils/commands/whoami.ts";
 
 const prompt = '(base) 886kagg@Ciallo ~ % '
 

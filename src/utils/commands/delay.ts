@@ -1,4 +1,4 @@
-import {type TerminalAction} from "../terminal.ts";
+import {type TerminalAction} from "@/utils/terminal.ts";
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms))
 

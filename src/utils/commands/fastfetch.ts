@@ -1,4 +1,4 @@
-import {ansi, color, type TerminalSender} from "../terminal.ts";
+import {ansi, color, type TerminalSender} from "@/utils/terminal.ts";
 
 const lines = [
     `${color("                     ..'", ansi.lime)}          ${color('886kagg@Ciallo', ansi.bold, ansi.lime)}`,

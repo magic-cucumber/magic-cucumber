@@ -1,4 +1,4 @@
-import {type TerminalAction} from "../terminal.ts";
+import {type TerminalAction} from "@/utils/terminal.ts";
 
 const help: TerminalAction = (rawCommand, sender) => {
     if (rawCommand.trim() !== 'help') {

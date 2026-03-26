@@ -1,4 +1,4 @@
-import {type TerminalAction} from "../terminal.ts";
+import {type TerminalAction} from "@/utils/terminal.ts";
 
 const uname: TerminalAction = (rawCommand, sender) => {
     if (rawCommand.trim() !== 'uname') {
