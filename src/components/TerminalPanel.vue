@@ -3,7 +3,7 @@ import '@xterm/xterm/css/xterm.css'
 import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
 import {computed, onBeforeUnmount, onMounted, ref, shallowRef} from 'vue'
-import {splitTerminalText, type TerminalAction, type TerminalSender} from '../utils/terminal'
+import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '../utils/terminal'
 
 const props = withDefaults(defineProps<{
   prompt?: string
@@ -73,7 +73,8 @@ const submit = async () => {
       .catch((e: Error) => e)
 
   if (error != undefined) {
-    sender(`error on processing command!\n${error.message}\n  ${error.stack}`)
+    sender('\n')
+    sender(color(`error on processing command!\n${error.stack}`,ansi.red))
   }
 
   if (pendingOutput) {

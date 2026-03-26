@@ -67,7 +67,7 @@ const runCommand = async (rawCommand: string, sender: TerminalSender) => {
       sender('886kagg')
       return
     case 'uname':
-      sender('Darwin Ciallo 25.4.0 arm64')
+      sender('Darwin Ciallo.local 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 26 17:46:01 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T8132 arm64')
       return
     case 'date':
       sender(new Intl.DateTimeFormat('zh-CN', {
@@ -77,7 +77,7 @@ const runCommand = async (rawCommand: string, sender: TerminalSender) => {
       return
     case 'delay':
       sender('waiting...')
-      await wait(800)
+      await wait(3000)
       sender(args.join(' ') || 'done')
       return
     default:
