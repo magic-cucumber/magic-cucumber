@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import '@xterm/xterm/css/xterm.css'
-import { FitAddon } from '@xterm/addon-fit'
-import { Terminal } from '@xterm/xterm'
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-import { splitTerminalText, type TerminalAction, type TerminalSender } from '../utils/terminal'
+import {FitAddon} from '@xterm/addon-fit'
+import {Terminal} from '@xterm/xterm'
+import {computed, onBeforeUnmount, onMounted, ref, shallowRef} from 'vue'
+import {splitTerminalText, type TerminalAction, type TerminalSender} from '../utils/terminal'
 
 const props = withDefaults(defineProps<{
   prompt?: string
@@ -12,14 +12,14 @@ const props = withDefaults(defineProps<{
   prompt: '',
 })
 
-const data = defineModel<string[]>('data', { default: () => [] })
-const command = defineModel<string>('command', { default: '' })
+const data = defineModel<string[]>('data', {default: () => []})
+const command = defineModel<string>('command', {default: ''})
 
 const host = ref<HTMLElement | null>(null)
 const terminal = shallowRef<Terminal | null>(null)
 const fitAddon = new FitAddon()
+// running=true 时禁用输入，直到所有 action 执行完成再恢复 prompt。
 const running = ref(false)
-const pendingOutput = ref('')
 const onWindowResize = () => fitAddon.fit()
 
 const handlers = computed(() => {
@@ -30,85 +30,96 @@ const handlers = computed(() => {
   return Array.isArray(props.onAction) ? props.onAction : [props.onAction]
 })
 
-const screen = computed(() => {
-  const lines = [...data.value]
+const focus = () => terminal.value?.focus()
 
-  if (pendingOutput.value) {
-    lines.push(...splitTerminalText(pendingOutput.value))
+// 执行一次命令：
+// 1) 把当前命令写入 data 作为历史
+// 2) action 通过 sender 流式输出到 xterm
+// 3) 结束后根据输出末尾是否换行来决定是否补 \r\n，再打印新的 prompt
+const submit = async () => {
+  if (running.value) {
+    return
   }
 
-  if (!running.value) {
-    lines.push(`${props.prompt}${command.value}`)
-  }
-
-  return lines.join('\r\n')
-})
-
-const render = () => {
   const instance = terminal.value
 
   if (!instance) {
     return
   }
 
-  instance.reset()
-  instance.write(screen.value)
-  instance.scrollToBottom()
-}
-
-const focus = () => terminal.value?.focus()
-
-const submit = async () => {
-  if (running.value) {
-    return
-  }
-
   const rawCommand = command.value
   data.value = [...data.value, `${props.prompt}${rawCommand}`]
   command.value = ''
-  pendingOutput.value = ''
   running.value = true
+  // pendingOutput 用于持久化到 data；屏幕显示则由 sender 直接写入，避免整屏重绘闪烁。
+  let pendingOutput = ''
+  let wroteOutput = false
+  let outputEndsWithLineBreak = true
 
   const sender: TerminalSender = (chunk) => {
-    pendingOutput.value += chunk
+    if (!chunk) {
+      return
+    }
+
+    pendingOutput += chunk
+    wroteOutput = true
+    // 只看最后一个 chunk 是否以换行结尾，用于决定 prompt 前是否补换行。
+    outputEndsWithLineBreak = /(?:\r\n|\r|\n)$/.test(chunk)
+    instance.write(chunk)
   }
 
-  await Promise.all(handlers.value.map((handler) => handler(rawCommand, sender)))
+  const error = await Promise.all(handlers.value.map((handler) => handler(rawCommand, sender)))
+      .then(() => undefined)
+      .catch((e: Error) => e)
 
-  if (pendingOutput.value) {
-    data.value = [...data.value, ...splitTerminalText(pendingOutput.value)]
-    pendingOutput.value = ''
+  if (error != undefined) {
+    sender(`error on processing command!\n${error.message}\n  ${error.stack}`)
   }
 
-  running.value = false
-}
+  if (pendingOutput) {
+    data.value = [...data.value, ...splitTerminalText(pendingOutput)]
+  }
 
-const cancel = () => {
-  if (running.value) {
+  if (data.value.length === 0) {
+    // clear 命令会把 data 清空，这里同步清空终端并重画 prompt。
+    instance.clear()
+    instance.write(`${props.prompt}${command.value}`)
+    instance.scrollToBottom()
+    running.value = false
     return
   }
 
-  data.value = [...data.value, `${props.prompt}${command.value}`, '^C']
-  command.value = ''
+  if (wroteOutput && !outputEndsWithLineBreak) {
+    instance.write('\r\n')
+  }
+
+  running.value = false
+  instance.write(`${props.prompt}${command.value}`)
+  instance.scrollToBottom()
 }
 
+// 把 xterm 的 onData 原始字节流转换为“最小可用行编辑”：
+// - Enter 提交
+// - Backspace 回删
+// - 其余可打印字符直接追加
 const appendInput = (chunk: string) => {
   if (running.value) {
     return
   }
 
   if (chunk === '\r') {
+    terminal.value?.write('\r\n')
     void submit()
     return
   }
 
-  if (chunk === '\u0003') {
-    cancel()
-    return
-  }
-
   if (chunk === '\u007f') {
+    if (!command.value) {
+      return
+    }
+
     command.value = command.value.slice(0, -1)
+    terminal.value?.write('\b \b')
     return
   }
 
@@ -116,6 +127,7 @@ const appendInput = (chunk: string) => {
 
   if (printable) {
     command.value += printable
+    terminal.value?.write(printable)
   }
 }
 
@@ -139,7 +151,14 @@ onMounted(() => {
   instance.loadAddon(fitAddon)
   instance.open(host.value!)
   instance.onData(appendInput)
-  render()
+  // 首次挂载按 data 回放历史，再打印当前 prompt。
+  if (data.value.length) {
+    instance.write(data.value.join('\r\n'))
+    instance.write('\r\n')
+  }
+  if (!running.value) {
+    instance.write(`${props.prompt}${command.value}`)
+  }
   focus()
   window.addEventListener('resize', onWindowResize)
   fitAddon.fit()
@@ -149,10 +168,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
   terminal.value?.dispose()
 })
-
-watch(screen, render, { immediate: true })
 </script>
 
 <template>
-  <div ref="host" class="terminal-screen" @click="focus" />
+  <div ref="host" class="terminal-screen" @click="focus"/>
 </template>

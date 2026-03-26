@@ -95,7 +95,7 @@ const runCommand = async (rawCommand: string, sender: TerminalSender) => {
           <span class="traffic-light minimize"></span>
           <span class="traffic-light maximize"></span>
         </div>
-        <p class="terminal-title">magic-cucumber terminal</p>
+        <p class="terminal-title">magic-cucumber's MacBook Air</p>
       </header>
 
       <TerminalPanel
