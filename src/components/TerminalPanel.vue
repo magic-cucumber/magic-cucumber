@@ -4,7 +4,7 @@ import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
 import {computed, onBeforeUnmount, onMounted, ref, shallowRef} from 'vue'
 import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
-import {WebLinksAddon} from "@xterm/addon-web-links/src/WebLinksAddon.ts";
+import {WebLinksAddon} from "@xterm/addon-web-links";
 
 const props = withDefaults(defineProps<{
   prompt?: string
