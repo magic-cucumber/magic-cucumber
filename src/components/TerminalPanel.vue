@@ -82,8 +82,8 @@ const submit = async () => {
         sender(color(`error on processing command!\n${result.stack}`, ansi.red))
         break loop
       }
-      case 'undefined': { //undefined视为继续处理
-
+      case 'undefined': { //undefined需要看情况
+        if (wroteOutput) break loop //有产出则不处理
       }
     }
   }
