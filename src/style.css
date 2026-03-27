@@ -1,9 +1,6 @@
 :root {
-  color: #d8f3ff;
-  background:
-    radial-gradient(circle at top, rgba(18, 92, 121, 0.45), transparent 36%),
-    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.18), transparent 28%),
-    linear-gradient(180deg, #031018 0%, #02070d 100%);
+  color: #111827;
+  background: #ffffff;
   font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -21,6 +18,7 @@ body,
 
 body {
   min-height: 100svh;
+  background: #ffffff;
 }
 
 * {

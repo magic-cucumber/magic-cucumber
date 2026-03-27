@@ -207,11 +207,9 @@ const toggleFullscreen = () => {
   grid-template-rows: auto minmax(0, 1fr);
   min-width: 320px;
   min-height: 220px;
-  border: 1px solid rgba(110, 193, 255, 0.16);
-  background: rgba(3, 16, 24, 0.7);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 24px 80px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(22px);
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -227,8 +225,8 @@ const toggleFullscreen = () => {
   gap: 16px;
   min-height: 38px;
   padding: 0 14px;
-  border-bottom: 1px solid rgba(110, 193, 255, 0.12);
-  background: linear-gradient(180deg, rgba(8, 32, 47, 0.92), rgba(3, 16, 24, 0.72));
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
   cursor: move;
   user-select: none;
   -webkit-user-select: none;
@@ -327,7 +325,7 @@ const toggleFullscreen = () => {
 
 .window-title {
   margin: 0;
-  color: rgba(216, 243, 255, 0.82);
+  color: #4b5563;
   font-size: 0.92rem;
   letter-spacing: 0.12em;
   user-select: none;
