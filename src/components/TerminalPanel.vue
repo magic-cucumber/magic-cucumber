@@ -3,7 +3,7 @@ import '@xterm/xterm/css/xterm.css'
 import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
 import {computed, ref, shallowRef, watch} from 'vue'
-import {useEventListener} from '@vueuse/core'
+import {useEventListener, useResizeObserver} from '@vueuse/core'
 import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
 import {WebLinksAddon} from "@xterm/addon-web-links";
 import {useMounted} from "@/utils/mounted.ts";
@@ -101,6 +101,7 @@ const onTouchMove = (event: TouchEvent) => {
 }
 
 useEventListener(window, 'resize', () => fitAddon.fit())
+useResizeObserver(host, () => fitAddon.fit())
 useEventListener(host, 'touchstart', onTouchStart, {passive: true})
 useEventListener(host, 'touchmove', onTouchMove, {passive: false})
 useEventListener(host, 'touchend', resetTouchScroll)
@@ -259,7 +260,6 @@ defineExpose(host)
   height: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 14px;
   overflow: hidden;
   overscroll-behavior: contain;
 }
@@ -279,12 +279,5 @@ defineExpose(host)
 .terminal-screen :deep(.xterm-helpers),
 .terminal-screen :deep(.xterm-viewport) {
   width: 100% !important;
-}
-
-@media (max-width: 720px) {
-  .terminal-screen {
-    padding: 10px;
-    touch-action: none;
-  }
 }
 </style>

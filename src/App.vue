@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {ref} from 'vue'
+import {useLocalStorage, useWindowSize} from '@vueuse/core'
 import TerminalPanel from '@/components/TerminalPanel.vue'
+import MacOSWindow from '@/components/MacOSWindow.vue'
 import fastfetch from "@/utils/commands/fastfetch.ts";
 import {ansi, color} from "@/utils/terminal.ts";
 import fallback from "@/utils/commands/fallback.ts";
@@ -13,7 +15,6 @@ import help from "@/utils/commands/help.ts";
 import pwd from "@/utils/commands/pwd.ts";
 import uname from "@/utils/commands/uname.ts";
 import whoami from "@/utils/commands/whoami.ts";
-import {useFullscreen, useLocalStorage} from "@vueuse/core";
 
 const prompt = '(base) 886kagg@Ciallo ~ % '
 
@@ -70,41 +71,19 @@ const reset = reset0.default({
   }
 })
 
-const template = ref<HTMLElement | null>(null)
-
-
-const close = () => history.back()
-const mini = () => template.value?.blur()
-const {isFullscreen, enter, exit, isSupported} = useFullscreen(template)
-
-const toggle = () => {
-  if (!isSupported.value) {
-    alert('fullscreen is not supported')
-    return
-  }
-  if (isFullscreen.value) {
-    exit()
-  } else {
-    enter()
-  }
-}
+const {width, height} = useWindowSize()
+const point = ref({x: width.value / 2 - 450, y: height.value / 2 - 300})
+const size = ref({w: 900, h: 600})
 </script>
 
 <template>
   <main class="terminal-shell">
-    <section class="terminal-frame">
-      <header class="terminal-bar">
-        <div class="traffic-lights">
-          <button class="traffic-light close" type="button" title="Close" aria-label="Close" @click="close"></button>
-          <button class="traffic-light minimize" type="button" title="Minimize" aria-label="Minimize"
-                  @click="mini"></button>
-          <button class="traffic-light maximize" type="button" title="Zoom" aria-label="Zoom" @click="toggle"></button>
-        </div>
-        <p class="terminal-title">magic-cucumber's MacBook Air</p>
-      </header>
-
+    <MacOSWindow
+        v-model:point="point"
+        v-model:size="size"
+        title="magic-cucumber's MacBook Air"
+    >
       <TerminalPanel
-          ref="template"
           class="terminal-panel"
           :initial="data"
           :key="hash"
@@ -125,7 +104,7 @@ const toggle = () => {
           fallback
         ]"
       />
-    </section>
+    </MacOSWindow>
   </main>
 </template>
 
@@ -156,148 +135,8 @@ const toggle = () => {
   background: radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.34) 100%);
 }
 
-.terminal-frame {
-  width: 100%;
-  height: 100svh;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  border: 1px solid rgba(110, 193, 255, 0.16);
-  background: rgba(3, 16, 24, 0.7);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
-  0 24px 80px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(22px);
-}
-
-.terminal-bar {
-  --traffic-hit-size: clamp(28px, 3.6vw, 38px);
-  --traffic-dot-size: clamp(13px, 1.45vw, 18px);
-  --traffic-gap: clamp(8px, 1vw, 12px);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: clamp(56px, 7vw, 68px);
-  padding: 0 clamp(14px, 2vw, 22px);
-  border-bottom: 1px solid rgba(110, 193, 255, 0.12);
-  background: linear-gradient(180deg, rgba(8, 32, 47, 0.92), rgba(3, 16, 24, 0.72));
-}
-
-.traffic-lights {
-  display: flex;
-  gap: var(--traffic-gap);
-  margin-left: calc(var(--traffic-hit-size) * -0.18);
-}
-
-.traffic-light {
-  position: relative;
-  display: grid;
-  place-items: center;
-  //width: var(--traffic-hit-size);
-  height: var(--traffic-hit-size);
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform 0.16s ease, filter 0.16s ease, background-color 0.16s ease;
-}
-
-.traffic-light::after {
-  content: '';
-  width: var(--traffic-dot-size);
-  height: var(--traffic-dot-size);
-  border-radius: 50%;
-  border: 1px solid transparent;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
-}
-
-.traffic-light.close::after {
-  background: linear-gradient(180deg, #ff6d67 0%, #ed5b55 100%);
-  border-color: #d94b44;
-}
-
-.traffic-light.minimize::after {
-  background: linear-gradient(180deg, #f6be4f 0%, #edae2f 100%);
-  border-color: #d59b2a;
-}
-
-.traffic-light.maximize::after {
-  background: linear-gradient(180deg, #62c755 0%, #4cb748 100%);
-  border-color: #40a53d;
-}
-
-.traffic-light::before {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: rgba(0, 0, 0, 0.62);
-  font-size: clamp(10px, 1vw, 12px);
-  font-weight: 700;
-  line-height: 1;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-
-.traffic-light.close::before {
-  content: '×';
-}
-
-.traffic-light.minimize::before {
-  content: '−';
-}
-
-.traffic-light.maximize::before {
-  content: '+';
-}
-
-.traffic-lights:hover .traffic-light::before {
-  opacity: 1;
-}
-
-.traffic-light:focus-visible {
-  outline: 2px solid rgba(126, 249, 198, 0.72);
-  outline-offset: 2px;
-}
-
-.traffic-light:hover {
-  filter: brightness(0.96);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.traffic-light:active {
-  transform: scale(0.96);
-}
-
-.terminal-title {
-  margin: 0;
-  color: rgba(216, 243, 255, 0.82);
-  font-size: 0.92rem;
-  letter-spacing: 0.12em;
-}
-
 .terminal-panel {
   min-width: 0;
   min-height: 0;
-}
-
-@media (max-width: 720px) {
-  .terminal-bar {
-    --traffic-hit-size: 44px;
-    --traffic-dot-size: 16px;
-    --traffic-gap: 10px;
-    min-height: 56px;
-    padding-inline: 14px;
-  }
-
-  .traffic-lights {
-    margin-left: -6px;
-  }
-
-  .terminal-title {
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-  }
 }
 </style>
