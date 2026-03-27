@@ -2,7 +2,8 @@
 import '@xterm/xterm/css/xterm.css'
 import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
-import {computed, onBeforeUnmount, onMounted, ref, shallowRef} from 'vue'
+import {computed, ref, shallowRef} from 'vue'
+import {tryOnMounted, tryOnScopeDispose, useEventListener} from '@vueuse/core'
 import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
 import {WebLinksAddon} from "@xterm/addon-web-links";
 
@@ -23,7 +24,7 @@ const terminal = shallowRef<Terminal | null>(null)
 const fitAddon = new FitAddon()
 // running=true 时禁用输入，直到所有 action 执行完成再恢复 prompt。
 const running = ref(false)
-const onWindowResize = () => fitAddon.fit()
+let lastTouchY: number | null = null
 
 const handlers = computed(() => {
   if (!props.onAction) {
@@ -34,6 +35,67 @@ const handlers = computed(() => {
 })
 
 const focus = () => terminal.value?.focus()
+
+const getAverageTouchY = (touches: TouchList) => {
+  if (touches.length === 0) {
+    return null
+  }
+
+  let total = 0
+
+  for (let index = 0; index < touches.length; index += 1) {
+    total += touches[index].clientY
+  }
+
+  return total / touches.length
+}
+
+const resetTouchScroll = () => {
+  lastTouchY = null
+}
+
+const onTouchStart = (event: TouchEvent) => {
+  lastTouchY = getAverageTouchY(event.touches)
+}
+
+const onTouchMove = (event: TouchEvent) => {
+  const instance = terminal.value
+  const currentY = getAverageTouchY(event.touches)
+
+  if (!instance || currentY === null) {
+    return
+  }
+
+  // 移动端触摸滚动应只驱动终端缓冲区，避免浏览器拖动整个外层容器。
+  event.preventDefault()
+
+  if (lastTouchY === null) {
+    lastTouchY = currentY
+    return
+  }
+
+  const deltaY = lastTouchY - currentY
+
+  if (Math.abs(deltaY) < 4) {
+    return
+  }
+
+  const fontSize = typeof instance.options.fontSize === 'number' ? instance.options.fontSize : 14
+  const lineHeight = typeof instance.options.lineHeight === 'number' ? instance.options.lineHeight : 1.45
+  const pxPerLine = Math.max(fontSize * lineHeight, 1)
+  const lines = Math.trunc(deltaY / pxPerLine)
+
+  if (lines !== 0) {
+    instance.scrollLines(lines)
+    lastTouchY = currentY
+  }
+}
+
+useEventListener(window, 'resize', () => fitAddon.fit())
+useEventListener(host, 'touchstart', onTouchStart, {passive: true})
+useEventListener(host, 'touchmove', onTouchMove, {passive: false})
+useEventListener(host, 'touchend', resetTouchScroll)
+useEventListener(host, 'touchcancel', resetTouchScroll)
 
 // 执行一次命令：
 // 1) 把当前命令写入 data 作为历史
@@ -146,7 +208,7 @@ const appendInput = (chunk: string) => {
   }
 }
 
-onMounted(() => {
+tryOnMounted(() => {
   const instance = new Terminal({
     convertEol: true,
     cursorBlink: true,
@@ -176,12 +238,10 @@ onMounted(() => {
     instance.write(`${props.prompt}${command.value}`)
   }
   focus()
-  window.addEventListener('resize', onWindowResize)
   fitAddon.fit()
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', onWindowResize)
+tryOnScopeDispose(() => {
   terminal.value?.dispose()
 })
 
@@ -200,6 +260,7 @@ defineExpose(host)
   min-height: 0;
   padding: 14px;
   overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .terminal-screen :deep(.xterm) {
@@ -207,6 +268,8 @@ defineExpose(host)
 }
 
 .terminal-screen :deep(.xterm-viewport) {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(126, 249, 198, 0.5) transparent;
 }
@@ -220,6 +283,7 @@ defineExpose(host)
 @media (max-width: 720px) {
   .terminal-screen {
     padding: 10px;
+    touch-action: none;
   }
 }
 </style>
