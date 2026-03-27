@@ -5,6 +5,7 @@ import fastfetch from "@/utils/commands/fastfetch.ts";
 import {ansi, color} from "@/utils/terminal.ts";
 import fallback from "@/utils/commands/fallback.ts";
 import * as clear0 from "@/utils/commands/clear.ts";
+import * as reset0 from "@/utils/commands/reset.ts";
 import date from "@/utils/commands/date.ts";
 import delay from "@/utils/commands/delay.ts";
 import echo from "@/utils/commands/echo.ts";
@@ -16,8 +17,9 @@ import {useFullscreen, useLocalStorage} from "@vueuse/core";
 
 const prompt = '(base) 886kagg@Ciallo ~ % '
 
-const buffer = useLocalStorage('buffer','')
-const data = useLocalStorage('history',[
+const buffer = useLocalStorage('buffer', '')
+
+const data_default = [
   `${color('Last login: Thu Mar 26 17:46:01 on ttys001', ansi.bold, ansi.green)}`,
   `${prompt}fastfetch`,
   `${color("                     ..'", ansi.lime)}          ${color('886kagg@Ciallo', ansi.bold, ansi.lime)}`,
@@ -47,11 +49,25 @@ const data = useLocalStorage('history',[
   '',
   `${' '.repeat(34)}${color('   ', ansi.bgBlack)}${color('   ', ansi.bgRed)}${color('   ', ansi.bgGreen)}${color('   ', ansi.bgYellow)}${color('   ', ansi.bgBlue)}${color('   ', ansi.bgMagenta)}${color('   ', ansi.bgCyan)}${color('   ', ansi.bgWhite)}`,
   '',
-])
+]
+const data = useLocalStorage('history', data_default)
 
 
-const clear = clear0.default({clear: () => data.value = []})
+const clear = clear0.default({
+  clear: () => {
+    data.value = []
+    hash.value = Math.random()
+  }
+})
 
+const hash = ref(Math.random())
+const reset = reset0.default({
+  reset: () => {
+    buffer.value = ''
+    data.value = [...data_default]
+    hash.value = Math.random()
+  }
+})
 
 const template = ref<HTMLElement | null>(null)
 
@@ -87,22 +103,166 @@ const toggle = () => {
 
       <TerminalPanel
           ref="template"
-          v-model:data="data"
-          v-model:command="buffer"
+          class="terminal-panel"
+          :initial="data"
+          :key="hash"
           :prompt="prompt"
+          v-model:command="buffer"
           :on-action="[
-              fastfetch,
-              clear,
-              date,
-              delay,
-              echo,
-              help,
-              pwd,
-              uname,
-              whoami,
-              fallback
-          ]"
+          fastfetch,
+          clear,
+          reset,
+          date,
+          delay,
+          echo,
+          help,
+          pwd,
+          uname,
+          whoami,
+          fallback
+        ]"
       />
     </section>
   </main>
 </template>
+
+<style scoped>
+.terminal-shell {
+  min-height: 100svh;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-shell::before,
+.terminal-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.terminal-shell::before {
+  background: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 100% 44px, 44px 100%;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 88%);
+}
+
+.terminal-shell::after {
+  background: radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.34) 100%);
+}
+
+.terminal-frame {
+  width: 100%;
+  height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid rgba(110, 193, 255, 0.16);
+  background: rgba(3, 16, 24, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+  0 24px 80px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(22px);
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 56px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(110, 193, 255, 0.12);
+  background: linear-gradient(180deg, rgba(8, 32, 47, 0.92), rgba(3, 16, 24, 0.72));
+}
+
+.traffic-lights {
+  display: flex;
+  gap: 8px;
+}
+
+.traffic-light {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter 0.16s ease;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
+}
+
+.traffic-light.close {
+  background: linear-gradient(180deg, #ff6d67 0%, #ed5b55 100%);
+  border-color: #d94b44;
+}
+
+.traffic-light.minimize {
+  background: linear-gradient(180deg, #f6be4f 0%, #edae2f 100%);
+  border-color: #d59b2a;
+}
+
+.traffic-light.maximize {
+  background: linear-gradient(180deg, #62c755 0%, #4cb748 100%);
+  border-color: #40a53d;
+}
+
+.traffic-light::before {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(0, 0, 0, 0.62);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.traffic-light.close::before {
+  content: '×';
+}
+
+.traffic-light.minimize::before {
+  content: '−';
+}
+
+.traffic-light.maximize::before {
+  content: '+';
+}
+
+.traffic-lights:hover .traffic-light::before {
+  opacity: 1;
+}
+
+.traffic-light:hover {
+  filter: brightness(0.96);
+}
+
+.terminal-title {
+  margin: 0;
+  color: rgba(216, 243, 255, 0.82);
+  font-size: 0.92rem;
+  letter-spacing: 0.12em;
+}
+
+.terminal-panel {
+  min-width: 0;
+  min-height: 0;
+}
+
+@media (max-width: 720px) {
+  .terminal-bar {
+    min-height: 48px;
+    padding-inline: 14px;
+  }
+
+  .terminal-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+}
+</style>

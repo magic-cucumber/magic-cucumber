@@ -9,12 +9,14 @@ import {WebLinksAddon} from "@xterm/addon-web-links";
 const props = withDefaults(defineProps<{
   prompt?: string
   onAction?: TerminalAction | TerminalAction[]
+  initial?: string[]
 }>(), {
   prompt: '',
+  initial: () => [],
 })
 
-const data = defineModel<string[]>('data', {default: () => []})
 const command = defineModel<string>('command', {default: ''})
+const screen = ref([...props.initial])
 
 const host = ref<HTMLElement | null>(null)
 const terminal = shallowRef<Terminal | null>(null)
@@ -49,7 +51,7 @@ const submit = async () => {
   }
 
   const rawCommand = command.value
-  data.value = [...data.value, `${props.prompt}${rawCommand}`]
+  screen.value = [...screen.value, `${props.prompt}${rawCommand}`]
   command.value = ''
   running.value = true
   // pendingOutput 用于持久化到 data；屏幕显示则由 sender 直接写入，避免整屏重绘闪烁。
@@ -90,10 +92,10 @@ const submit = async () => {
   }
 
   if (pendingOutput) {
-    data.value = [...data.value, ...splitTerminalText(pendingOutput)]
+    screen.value = [...screen.value, ...splitTerminalText(pendingOutput)]
   }
 
-  if (data.value.length === 0) {
+  if (screen.value.length === 0) {
     // clear 命令会把 data 清空，这里同步清空终端并重画 prompt。
     instance.clear()
     instance.write(`${props.prompt}${command.value}`)
@@ -165,9 +167,9 @@ onMounted(() => {
   instance.loadAddon(new WebLinksAddon())
   instance.open(host.value!)
   instance.onData(appendInput)
-  // 首次挂载按 data 回放历史，再打印当前 prompt。
-  if (data.value.length) {
-    instance.write(data.value.join('\r\n'))
+  // 首次挂载按初始屏幕回放历史，再打印当前 prompt。
+  if (screen.value.length) {
+    instance.write(screen.value.join('\r\n'))
     instance.write('\r\n')
   }
   if (!running.value) {
@@ -189,3 +191,35 @@ defineExpose(host)
 <template>
   <div ref="host" class="terminal-screen" @click="focus"/>
 </template>
+
+<style scoped>
+.terminal-screen {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.terminal-screen :deep(.xterm) {
+  height: 100%;
+}
+
+.terminal-screen :deep(.xterm-viewport) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(126, 249, 198, 0.5) transparent;
+}
+
+.terminal-screen :deep(.xterm-screen),
+.terminal-screen :deep(.xterm-helpers),
+.terminal-screen :deep(.xterm-viewport) {
+  width: 100% !important;
+}
+
+@media (max-width: 720px) {
+  .terminal-screen {
+    padding: 10px;
+  }
+}
+</style>

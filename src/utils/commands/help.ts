@@ -17,7 +17,7 @@ const help: TerminalAction = (rawCommand, sender) => {
     sender([
         color(' ✨ HELP ✨ ', ansi.bold, ansi.inverse, ansi.yellow),
         rainbowDivider,
-        color('🧰 Available commands', ansi.bold, ansi.underline, ansi.yellow) + ': ' + color('fastfetch, clear, help, echo, pwd, whoami, uname, date, delay', ansi.lime),
+        color('🧰 Available commands', ansi.bold, ansi.underline, ansi.yellow) + ': ' + color('fastfetch, clear, help, echo, pwd, whoami, uname, date, delay, reset', ansi.lime),
         '',
         color('👤 Profile', ansi.bold, ansi.underline, ansi.magenta),
         `${color('  🐙 GitHub', ansi.bold, ansi.blue)}: ${color('https://github.com/magic-cucumber', ansi.white)}`,
