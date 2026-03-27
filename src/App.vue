@@ -107,6 +107,7 @@ const toggle = () => {
           :initial="data"
           :key="hash"
           :prompt="prompt"
+          @changed="(it) => data = it"
           v-model:command="buffer"
           :on-action="[
           fastfetch,

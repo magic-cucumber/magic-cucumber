@@ -2,10 +2,11 @@
 import '@xterm/xterm/css/xterm.css'
 import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
-import {computed, ref, shallowRef} from 'vue'
-import {tryOnMounted, tryOnScopeDispose, useEventListener} from '@vueuse/core'
+import {computed, ref, shallowRef, watch} from 'vue'
+import {useEventListener} from '@vueuse/core'
 import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
 import {WebLinksAddon} from "@xterm/addon-web-links";
+import {useMounted} from "@/utils/mounted.ts";
 
 const props = withDefaults(defineProps<{
   prompt?: string
@@ -16,8 +17,16 @@ const props = withDefaults(defineProps<{
   initial: () => [],
 })
 
+const emits = defineEmits<{
+  changed: [screen: string[]]
+}>()
+
 const command = defineModel<string>('command', {default: ''})
 const screen = ref([...props.initial])
+
+watch(screen, (value) => {
+  emits('changed', [...value])
+})
 
 const host = ref<HTMLElement | null>(null)
 const terminal = shallowRef<Terminal | null>(null)
@@ -175,40 +184,7 @@ const submit = async () => {
   instance.scrollToBottom()
 }
 
-// 把 xterm 的 onData 原始字节流转换为“最小可用行编辑”：
-// - Enter 提交
-// - Backspace 回删
-// - 其余可打印字符直接追加
-const appendInput = (chunk: string) => {
-  if (running.value) {
-    return
-  }
-
-  if (chunk === '\r') {
-    terminal.value?.write('\r\n')
-    void submit()
-    return
-  }
-
-  if (chunk === '\u007f') {
-    if (!command.value) {
-      return
-    }
-
-    command.value = command.value.slice(0, -1)
-    terminal.value?.write('\b \b')
-    return
-  }
-
-  const printable = chunk.replace(/[\x00-\x1f\x7f]/g, '')
-
-  if (printable) {
-    command.value += printable
-    terminal.value?.write(printable)
-  }
-}
-
-tryOnMounted(() => {
+useMounted(() => {
   const instance = new Terminal({
     convertEol: true,
     cursorBlink: true,
@@ -228,7 +204,34 @@ tryOnMounted(() => {
   instance.loadAddon(fitAddon)
   instance.loadAddon(new WebLinksAddon())
   instance.open(host.value!)
-  instance.onData(appendInput)
+  instance.onData((chunk: string) => {
+    if (running.value) {
+      return
+    }
+
+    if (chunk === '\r') {
+      terminal.value?.write('\r\n')
+      void submit()
+      return
+    }
+
+    if (chunk === '\u007f') {
+      if (!command.value) {
+        return
+      }
+
+      command.value = command.value.slice(0, -1)
+      terminal.value?.write('\b \b')
+      return
+    }
+
+    const printable = chunk.replace(/[\x00-\x1f\x7f]/g, '')
+
+    if (printable) {
+      command.value += printable
+      terminal.value?.write(printable)
+    }
+  })
   // 首次挂载按初始屏幕回放历史，再打印当前 prompt。
   if (screen.value.length) {
     instance.write(screen.value.join('\r\n'))
@@ -239,10 +242,8 @@ tryOnMounted(() => {
   }
   focus()
   fitAddon.fit()
-})
 
-tryOnScopeDispose(() => {
-  terminal.value?.dispose()
+  return () => terminal.value?.dispose()
 })
 
 defineExpose(host)
