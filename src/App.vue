@@ -51,6 +51,7 @@ const data_default = [
   '',
 ]
 const data = useLocalStorage('history', data_default)
+const handleScreenChanged = (screen: string[]) => data.value = screen
 
 
 const clear = clear0.default({
@@ -94,9 +95,10 @@ const toggle = () => {
     <section class="terminal-frame">
       <header class="terminal-bar">
         <div class="traffic-lights">
-          <span class="traffic-light close" title="Close" aria-label="Close" @click="close"></span>
-          <span class="traffic-light minimize" title="Minimize" aria-label="Minimize" @click="mini"></span>
-          <span class="traffic-light maximize" title="Zoom" aria-label="Zoom" @click="toggle"></span>
+          <button class="traffic-light close" type="button" title="Close" aria-label="Close" @click="close"></button>
+          <button class="traffic-light minimize" type="button" title="Minimize" aria-label="Minimize"
+                  @click="mini"></button>
+          <button class="traffic-light maximize" type="button" title="Zoom" aria-label="Zoom" @click="toggle"></button>
         </div>
         <p class="terminal-title">magic-cucumber's MacBook Air</p>
       </header>
@@ -107,7 +109,7 @@ const toggle = () => {
           :initial="data"
           :key="hash"
           :prompt="prompt"
-          @changed="(it) => data = it"
+          @changed="handleScreenChanged"
           v-model:command="buffer"
           :on-action="[
           fastfetch,
@@ -167,45 +169,60 @@ const toggle = () => {
 }
 
 .terminal-bar {
+  --traffic-hit-size: clamp(28px, 3.6vw, 38px);
+  --traffic-dot-size: clamp(13px, 1.45vw, 18px);
+  --traffic-gap: clamp(8px, 1vw, 12px);
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 56px;
-  padding: 0 20px;
+  min-height: clamp(56px, 7vw, 68px);
+  padding: 0 clamp(14px, 2vw, 22px);
   border-bottom: 1px solid rgba(110, 193, 255, 0.12);
   background: linear-gradient(180deg, rgba(8, 32, 47, 0.92), rgba(3, 16, 24, 0.72));
 }
 
 .traffic-lights {
   display: flex;
-  gap: 8px;
+  gap: var(--traffic-gap);
+  margin-left: calc(var(--traffic-hit-size) * -0.18);
 }
 
 .traffic-light {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 12px;
-  height: 12px;
+  display: grid;
+  place-items: center;
+  //width: var(--traffic-hit-size);
+  height: var(--traffic-hit-size);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.16s ease, filter 0.16s ease, background-color 0.16s ease;
+}
+
+.traffic-light::after {
+  content: '';
+  width: var(--traffic-dot-size);
+  height: var(--traffic-dot-size);
   border-radius: 50%;
   border: 1px solid transparent;
-  cursor: pointer;
-  transition: filter 0.16s ease;
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
 }
 
-.traffic-light.close {
+.traffic-light.close::after {
   background: linear-gradient(180deg, #ff6d67 0%, #ed5b55 100%);
   border-color: #d94b44;
 }
 
-.traffic-light.minimize {
+.traffic-light.minimize::after {
   background: linear-gradient(180deg, #f6be4f 0%, #edae2f 100%);
   border-color: #d59b2a;
 }
 
-.traffic-light.maximize {
+.traffic-light.maximize::after {
   background: linear-gradient(180deg, #62c755 0%, #4cb748 100%);
   border-color: #40a53d;
 }
@@ -216,7 +233,7 @@ const toggle = () => {
   display: grid;
   place-items: center;
   color: rgba(0, 0, 0, 0.62);
-  font-size: 9px;
+  font-size: clamp(10px, 1vw, 12px);
   font-weight: 700;
   line-height: 1;
   opacity: 0;
@@ -239,8 +256,18 @@ const toggle = () => {
   opacity: 1;
 }
 
+.traffic-light:focus-visible {
+  outline: 2px solid rgba(126, 249, 198, 0.72);
+  outline-offset: 2px;
+}
+
 .traffic-light:hover {
   filter: brightness(0.96);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.traffic-light:active {
+  transform: scale(0.96);
 }
 
 .terminal-title {
@@ -257,8 +284,15 @@ const toggle = () => {
 
 @media (max-width: 720px) {
   .terminal-bar {
-    min-height: 48px;
+    --traffic-hit-size: 44px;
+    --traffic-dot-size: 16px;
+    --traffic-gap: 10px;
+    min-height: 56px;
     padding-inline: 14px;
+  }
+
+  .traffic-lights {
+    margin-left: -6px;
   }
 
   .terminal-title {
