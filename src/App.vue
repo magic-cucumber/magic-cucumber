@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useLocalStorage, useWindowSize} from '@vueuse/core'
 import TerminalPanel from '@/components/TerminalPanel.vue'
 import MacOSWindow from '@/components/MacOSWindow.vue'
@@ -72,8 +72,21 @@ const reset = reset0.default({
 })
 
 const {width, height} = useWindowSize()
-const point = ref({x: width.value / 2 - 450, y: height.value / 2 - 300})
-const size = ref({w: 900, h: 600})
+const size = ref({
+  w: width.value,
+  h: height.value,
+})
+const point = ref({
+  x: (width.value - size.value.w) / 2,
+  y: (height.value - size.value.h) / 2,
+})
+
+const fontSize = computed(() => {
+  if (width.value < 720) {
+    return 8
+  }
+  return 14
+})
 </script>
 
 <template>
@@ -85,6 +98,7 @@ const size = ref({w: 900, h: 600})
     >
       <TerminalPanel
           class="terminal-panel"
+          :font-size="fontSize"
           :initial="data"
           :key="hash"
           :prompt="prompt"

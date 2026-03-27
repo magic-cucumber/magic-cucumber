@@ -10,10 +10,12 @@ import {useMounted} from "@/utils/mounted.ts";
 
 const props = withDefaults(defineProps<{
   prompt?: string
+  fontSize?: number
   onAction?: TerminalAction | TerminalAction[]
   initial?: string[]
 }>(), {
   prompt: '',
+  fontSize: 16,
   initial: () => [],
 })
 
@@ -191,8 +193,7 @@ useMounted(() => {
     cursorBlink: true,
     cursorStyle: 'block',
     fontFamily: '"IBM Plex Mono", "SFMono-Regular", Consolas, monospace',
-    fontSize: 14,
-    lineHeight: 1.45,
+    fontSize: props.fontSize,
     theme: {
       background: '#00000000',
       foreground: '#d8f3ff',
