@@ -68,6 +68,8 @@ const beginDrag = (event: PointerEvent) => {
     return
   }
 
+  // Prevent mobile browsers from opening text selection/callout while dragging.
+  event.preventDefault()
   dragState.value = {
     startX: event.clientX,
     startY: event.clientY,
@@ -80,6 +82,7 @@ const beginResize = (direction: ResizeDirection, event: PointerEvent) => {
     return
   }
 
+  event.preventDefault()
   event.stopPropagation()
   resizeState.value = {
     direction,
@@ -210,6 +213,9 @@ const toggleFullscreen = () => {
     0 24px 80px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(22px);
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .macos-toolbar {
@@ -225,6 +231,8 @@ const toggleFullscreen = () => {
   background: linear-gradient(180deg, rgba(8, 32, 47, 0.92), rgba(3, 16, 24, 0.72));
   cursor: move;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   touch-action: none;
 }
 
@@ -322,6 +330,9 @@ const toggleFullscreen = () => {
   color: rgba(216, 243, 255, 0.82);
   font-size: 0.92rem;
   letter-spacing: 0.12em;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .window-content {
