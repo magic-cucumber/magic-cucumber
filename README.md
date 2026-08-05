@@ -1,3 +1,3 @@
 ## 个人简介
 
-是 `kagg886` 的 小号。由于未知原因，该账号被 github 封禁。 为了保持不失联，我开放此账号以供其他讨论。
+大号指引：[https://github.com/kagg886](https://github.com/kagg886)
