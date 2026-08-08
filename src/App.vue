@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useLocalStorage, useWindowSize} from '@vueuse/core'
 import TerminalPanel from '@/components/TerminalPanel.vue'
 import MacOSWindow from '@/components/MacOSWindow.vue'
@@ -62,10 +62,26 @@ const fontSize = computed(() => {
   }
   return 14
 })
+
+const wallpaperHighResReady = useLocalStorage('wallpaper-high-resolution-ready', false)
+const wallpaperSource = computed(() =>
+  wallpaperHighResReady.value ? '/wallpaper.png' : '/wallpaper_preview.png'
+)
+
+onMounted(() => {
+  const highResolutionWallpaper = new Image()
+  highResolutionWallpaper.onload = () => {
+    wallpaperHighResReady.value = true
+  }
+  highResolutionWallpaper.src = '/wallpaper.png'
+})
 </script>
 
 <template>
-  <main class="terminal-shell">
+  <main
+      class="terminal-shell"
+      :style="{ backgroundImage: `url(${wallpaperSource})` }"
+  >
     <MacOSMenu style="width: 100%;z-index: 10000" :default-menu="['妈妈','爸爸']" :menu="[{title: '妈妈'},{title: '爸爸',subTitle: ['奶奶','小狗']},{title: '姐姐'}]"/>
     <MacOSWindow
         v-model:point="point"
@@ -106,7 +122,10 @@ const fontSize = computed(() => {
   padding: 0;
   position: relative;
   overflow: hidden;
-  background: #ffffff;
+  background-color: #ffffff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .terminal-panel {
