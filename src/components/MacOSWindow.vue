@@ -284,7 +284,6 @@ const toggleFullscreen = () => {
   min-width: 320px;
   min-height: 220px;
   border: 1px solid #d1d5db;
-  background: #ffffff;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
   overflow: hidden;
   user-select: none;
@@ -415,6 +414,7 @@ const toggleFullscreen = () => {
 .window-content {
   min-width: 0;
   min-height: 0;
+  opacity: 0.9;
 }
 
 .resize-handle {

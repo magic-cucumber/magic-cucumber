@@ -17,6 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const menuRef = ref<HTMLElement | null>(null)
+const isFocused = ref(false)
 const openIndex = ref<number | null>(null)
 const hoveredIndex = ref<number | null>(null)
 const hoveredItem = ref<number | null>(null)
@@ -26,7 +27,7 @@ const hasSubMenu = (index: number) => index === -1
   : Boolean(props.menu[index]?.subTitle?.length)
 const rootStyle = computed(() => [
   menuStyles.container,
-  (hoveredIndex.value !== null || openIndex.value !== null) && menuStyles.containerActive,
+  (isFocused.value || hoveredIndex.value !== null || openIndex.value !== null) && menuStyles.containerActive,
 ])
 const triggerStyle = (index: number) => [
   menuStyles.trigger,
@@ -38,8 +39,23 @@ const itemStyle = (index: number) => [
   hoveredItem.value === index && menuStyles.submenuItemActive,
 ]
 
+const handlePointerEnter = (index: number) => {
+  hoveredIndex.value = index
+
+  if (!isFocused.value) {
+    return
+  }
+
+  hoveredItem.value = null
+  openIndex.value = hasSubMenu(index) ? index : null
+}
+
 const toggle = (index: number) => {
   if (!hasSubMenu(index)) {
+    isFocused.value = true
+    openIndex.value = null
+    hoveredItem.value = null
+
     if (index >= 0) {
       emit('select', props.menu[index].title, index)
       emit('click', props.menu[index].title)
@@ -47,11 +63,13 @@ const toggle = (index: number) => {
     return
   }
 
+  isFocused.value = true
   hoveredItem.value = null
-  openIndex.value = openIndex.value === index ? null : index
+  openIndex.value = index
 }
 
 const close = () => {
+  isFocused.value = false
   openIndex.value = null
   hoveredIndex.value = null
   hoveredItem.value = null
@@ -66,7 +84,13 @@ const selectItem = (title: string, menuIndex: number, itemIndex: number) => {
 useEventListener(document, 'pointerdown', (event: PointerEvent) => {
   const target = event.target
 
-  if (menuRef.value && target instanceof Node && !menuRef.value.contains(target)) {
+  if (!(target instanceof Node) || !menuRef.value?.contains(target)) {
+    close()
+    return
+  }
+
+  const menuItem = target instanceof Element ? target.closest('button') : null
+  if (!menuItem || !menuRef.value.contains(menuItem)) {
     close()
   }
 })
@@ -87,7 +111,7 @@ useEventListener(document, 'pointerdown', (event: PointerEvent) => {
         aria-label="Apple menu"
         :aria-haspopup="hasSubMenu(-1) ? 'menu' : undefined"
         :aria-expanded="hasSubMenu(-1) ? openIndex === -1 : undefined"
-        @pointerenter="hoveredIndex = -1"
+        @pointerenter="handlePointerEnter(-1)"
         @focus="hoveredIndex = -1"
         @click="toggle(-1)"
       >
@@ -121,7 +145,7 @@ useEventListener(document, 'pointerdown', (event: PointerEvent) => {
         :style="triggerStyle(index)"
         :aria-haspopup="hasSubMenu(index) ? 'menu' : undefined"
         :aria-expanded="hasSubMenu(index) ? openIndex === index : undefined"
-        @pointerenter="hoveredIndex = index"
+        @pointerenter="handlePointerEnter(index)"
         @focus="hoveredIndex = index"
         @click="toggle(index)"
       >
