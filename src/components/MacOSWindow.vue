@@ -42,6 +42,8 @@ const MIN_HEIGHT = 220
 const dragState = ref<{
   startX: number
   startY: number
+  pointerId: number
+  captureTarget: HTMLElement | null
   point: Point
 } | null>(null)
 
@@ -49,6 +51,8 @@ const resizeState = ref<{
   direction: ResizeDirection
   startX: number
   startY: number
+  pointerId: number
+  captureTarget: HTMLElement | null
   point: Point
   size: Size
 } | null>(null)
@@ -68,6 +72,23 @@ const clampSize = (nextWidth: number, nextHeight: number) => ({
   height: Math.max(MIN_HEIGHT, nextHeight),
 })
 
+const capturePointer = (event: PointerEvent) => {
+  const target = event.currentTarget
+
+  if (!(target instanceof HTMLElement)) {
+    return null
+  }
+
+  target.setPointerCapture(event.pointerId)
+  return target
+}
+
+const releasePointer = (state: {pointerId: number, captureTarget: HTMLElement | null} | null) => {
+  if (state?.captureTarget?.hasPointerCapture(state.pointerId)) {
+    state.captureTarget.releasePointerCapture(state.pointerId)
+  }
+}
+
 const beginDrag = (event: PointerEvent) => {
   if (!props.draggable || isFullscreen.value || event.button !== 0) {
     return
@@ -80,9 +101,12 @@ const beginDrag = (event: PointerEvent) => {
 
   // Prevent mobile browsers from opening text selection/callout while dragging.
   event.preventDefault()
+  event.stopPropagation()
   dragState.value = {
     startX: event.clientX,
     startY: event.clientY,
+    pointerId: event.pointerId,
+    captureTarget: capturePointer(event),
     point: {...point.value},
   }
 }
@@ -98,18 +122,31 @@ const beginResize = (direction: ResizeDirection, event: PointerEvent) => {
     direction,
     startX: event.clientX,
     startY: event.clientY,
+    pointerId: event.pointerId,
+    captureTarget: capturePointer(event),
     point: {...point.value},
     size: {...size.value},
   }
 }
 
-const stopInteraction = () => {
+const stopInteraction = (event?: PointerEvent) => {
+  const activePointerId = dragState.value?.pointerId ?? resizeState.value?.pointerId
+
+  if (event && activePointerId !== undefined && event.pointerId !== activePointerId) {
+    return
+  }
+
+  releasePointer(dragState.value)
+  releasePointer(resizeState.value)
   dragState.value = null
   resizeState.value = null
 }
 
 useEventListener(window, 'pointermove', (event: PointerEvent) => {
-  if (dragState.value && props.draggable) {
+  if (dragState.value && props.draggable && event.pointerId === dragState.value.pointerId) {
+    event.preventDefault()
+    event.stopPropagation()
+
     const nextX = dragState.value.point.x + event.clientX - dragState.value.startX
     const nextY = dragState.value.point.y + event.clientY - dragState.value.startY
 
@@ -125,9 +162,12 @@ useEventListener(window, 'pointermove', (event: PointerEvent) => {
     return
   }
 
-  if (!resizeState.value) {
+  if (!resizeState.value || event.pointerId !== resizeState.value.pointerId) {
     return
   }
+
+  event.preventDefault()
+  event.stopPropagation()
 
   const {direction, startX, startY} = resizeState.value
   const deltaX = event.clientX - startX
@@ -168,7 +208,7 @@ useEventListener(window, 'pointermove', (event: PointerEvent) => {
 
   size.value = {w: nextWidth, h: nextHeight}
   point.value = {x: nextX, y: nextY}
-})
+}, {passive: false})
 
 useEventListener(window, 'pointerup', stopInteraction)
 useEventListener(window, 'pointercancel', stopInteraction)
@@ -385,6 +425,8 @@ const toggleFullscreen = () => {
   background: transparent;
   color: transparent;
   appearance: none;
+  touch-action: none;
+  -webkit-user-drag: none;
 }
 
 .resize-handle-n,
