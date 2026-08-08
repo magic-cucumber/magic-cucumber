@@ -12,12 +12,22 @@ type Size = {
   h: number
 }
 
+type DragType = 'left' | 'top' | 'right' | 'bottom' | 'lt' | 'lr' | 'lb' | 'rb'
+type DragHandler = (type: DragType, newX?: number, newY?: number) => boolean | void
+type ResizeHandler = (newX: number, newY: number, newW: number, newH: number) => boolean | void
+
 type ResizeDirection = 'n' | 'e' | 's' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   title?: string
+  draggable?: boolean
+  resizable?: boolean
+  onDrag?: DragHandler
+  onResize?: ResizeHandler
 }>(), {
   title: '',
+  draggable: true,
+  resizable: true,
 })
 
 const point = defineModel<Point>('point', {required: true})
@@ -59,7 +69,7 @@ const clampSize = (nextWidth: number, nextHeight: number) => ({
 })
 
 const beginDrag = (event: PointerEvent) => {
-  if (isFullscreen.value || event.button !== 0) {
+  if (!props.draggable || isFullscreen.value || event.button !== 0) {
     return
   }
 
@@ -78,7 +88,7 @@ const beginDrag = (event: PointerEvent) => {
 }
 
 const beginResize = (direction: ResizeDirection, event: PointerEvent) => {
-  if (isFullscreen.value || event.button !== 0) {
+  if (!props.resizable || isFullscreen.value || event.button !== 0) {
     return
   }
 
@@ -99,11 +109,20 @@ const stopInteraction = () => {
 }
 
 useEventListener(window, 'pointermove', (event: PointerEvent) => {
-  if (dragState.value) {
-    point.value = {
-      x: dragState.value.point.x + event.clientX - dragState.value.startX,
-      y: dragState.value.point.y + event.clientY - dragState.value.startY,
+  if (dragState.value && props.draggable) {
+    const nextX = dragState.value.point.x + event.clientX - dragState.value.startX
+    const nextY = dragState.value.point.y + event.clientY - dragState.value.startY
+
+    if (props.onDrag?.('top', nextX, nextY) === false) {
+      return
     }
+
+    point.value = {x: nextX, y: nextY}
+  }
+
+  if (!props.resizable) {
+    resizeState.value = null
+    return
   }
 
   if (!resizeState.value) {
@@ -140,7 +159,14 @@ useEventListener(window, 'pointermove', (event: PointerEvent) => {
   }
 
   const clamped = clampSize(nextWidth, nextHeight)
-  size.value = {w: clamped.width, h: clamped.height}
+  nextWidth = clamped.width
+  nextHeight = clamped.height
+
+  if (props.onResize?.(nextX, nextY, nextWidth, nextHeight) === false) {
+    return
+  }
+
+  size.value = {w: nextWidth, h: nextHeight}
   point.value = {x: nextX, y: nextY}
 })
 
@@ -164,39 +190,49 @@ const toggleFullscreen = () => {
 
 <template>
   <section ref="windowRef" class="macos-window" :style="frameStyle">
-    <header class="macos-toolbar" @pointerdown="beginDrag">
+    <header class="macos-toolbar" :class="{'is-draggable': props.draggable}" @pointerdown="beginDrag">
       <div class="traffic-lights">
-        <button class="traffic-light close" type="button" title="Close" aria-label="Close" @click="close" />
+        <button class="traffic-light close" type="button" title="Close" aria-label="Close" @click="close"/>
         <button
-          class="traffic-light minimize"
-          type="button"
-          title="Minimize"
-          aria-label="Minimize"
-          @click="minimize"
+            class="traffic-light minimize"
+            type="button"
+            title="Minimize"
+            aria-label="Minimize"
+            @click="minimize"
         />
         <button
-          class="traffic-light maximize"
-          type="button"
-          title="Zoom"
-          aria-label="Zoom"
-          @click="toggleFullscreen"
+            class="traffic-light maximize"
+            type="button"
+            title="Zoom"
+            aria-label="Zoom"
+            @click="toggleFullscreen"
         />
       </div>
       <p v-if="title" class="window-title">{{ title }}</p>
     </header>
 
     <div class="window-content">
-      <slot />
+      <slot/>
     </div>
 
-    <button class="resize-handle resize-handle-n" type="button" aria-label="Resize north" data-resize-handle="true" @pointerdown="beginResize('n', $event)" />
-    <button class="resize-handle resize-handle-e" type="button" aria-label="Resize east" data-resize-handle="true" @pointerdown="beginResize('e', $event)" />
-    <button class="resize-handle resize-handle-s" type="button" aria-label="Resize south" data-resize-handle="true" @pointerdown="beginResize('s', $event)" />
-    <button class="resize-handle resize-handle-w" type="button" aria-label="Resize west" data-resize-handle="true" @pointerdown="beginResize('w', $event)" />
-    <button class="resize-handle resize-handle-ne" type="button" aria-label="Resize north east" data-resize-handle="true" @pointerdown="beginResize('ne', $event)" />
-    <button class="resize-handle resize-handle-nw" type="button" aria-label="Resize north west" data-resize-handle="true" @pointerdown="beginResize('nw', $event)" />
-    <button class="resize-handle resize-handle-se" type="button" aria-label="Resize south east" data-resize-handle="true" @pointerdown="beginResize('se', $event)" />
-    <button class="resize-handle resize-handle-sw" type="button" aria-label="Resize south west" data-resize-handle="true" @pointerdown="beginResize('sw', $event)" />
+    <template v-if="props.resizable">
+      <button class="resize-handle resize-handle-n" type="button" aria-label="Resize north" data-resize-handle="true"
+              @pointerdown="beginResize('n', $event)"/>
+      <button class="resize-handle resize-handle-e" type="button" aria-label="Resize east" data-resize-handle="true"
+              @pointerdown="beginResize('e', $event)"/>
+      <button class="resize-handle resize-handle-s" type="button" aria-label="Resize south" data-resize-handle="true"
+              @pointerdown="beginResize('s', $event)"/>
+      <button class="resize-handle resize-handle-w" type="button" aria-label="Resize west" data-resize-handle="true"
+              @pointerdown="beginResize('w', $event)"/>
+      <button class="resize-handle resize-handle-ne" type="button" aria-label="Resize north east"
+              data-resize-handle="true" @pointerdown="beginResize('ne', $event)"/>
+      <button class="resize-handle resize-handle-nw" type="button" aria-label="Resize north west"
+              data-resize-handle="true" @pointerdown="beginResize('nw', $event)"/>
+      <button class="resize-handle resize-handle-se" type="button" aria-label="Resize south east"
+              data-resize-handle="true" @pointerdown="beginResize('se', $event)"/>
+      <button class="resize-handle resize-handle-sw" type="button" aria-label="Resize south west"
+              data-resize-handle="true" @pointerdown="beginResize('sw', $event)"/>
+    </template>
   </section>
 </template>
 
@@ -227,11 +263,14 @@ const toggleFullscreen = () => {
   padding: 0 14px;
   border-bottom: 1px solid #e5e7eb;
   background: #ffffff;
-  cursor: move;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none;
+}
+
+.macos-toolbar.is-draggable {
+  cursor: move;
 }
 
 .traffic-lights {

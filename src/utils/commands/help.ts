@@ -1,33 +1,36 @@
-import {ansi, color, type TerminalAction} from "@/utils/terminal.ts";
+import {Ansis} from "ansis";
+import {type TerminalAction} from "@/utils/terminal.ts";
+
+const ansis = new Ansis(2)
 
 const help: TerminalAction = (rawCommand, sender) => {
     if (rawCommand.trim() !== 'help') {
         return
     }
     const rainbowDivider = [
-        color('━━', ansi.red, ansi.bold),
-        color('━━', ansi.orange, ansi.bold),
-        color('━━', ansi.yellow, ansi.bold),
-        color('━━', ansi.green, ansi.bold),
-        color('━━', ansi.blue, ansi.bold),
-        color('━━', ansi.purple, ansi.bold),
-        color('━━', ansi.magenta, ansi.bold),
+        ansis.fg(203).bold('━━'),
+        ansis.fg(214).bold('━━'),
+        ansis.fg(184).bold('━━'),
+        ansis.greenBright.bold('━━'),
+        ansis.fg(63).bold('━━'),
+        ansis.fg(99).bold('━━'),
+        ansis.fg(201).bold('━━'),
     ].join('')
 
     sender([
-        color(' ✨ HELP ✨ ', ansi.bold, ansi.inverse, ansi.yellow),
+        ansis.bold.inverse.fg(184)(' ✨ HELP ✨ '),
         rainbowDivider,
-        color('🧰 Available Commands & Purpose', ansi.bold, ansi.underline, ansi.yellow),
-        `${color('  fastfetch', ansi.bold, ansi.lime)}: ${color('show system information panel', ansi.white)}`,
-        `${color('  clear', ansi.bold, ansi.lime)}: ${color('clear terminal content', ansi.white)}`,
-        `${color('  reset', ansi.bold, ansi.lime)}: ${color('restore initial history and input state', ansi.white)}`,
-        `${color('  help', ansi.bold, ansi.lime)}: ${color('show command list and purpose', ansi.white)}`,
-        `${color('  whoami', ansi.bold, ansi.lime)}: ${color('show author profile', ansi.white)}`,
-        `${color('  echo', ansi.bold, ansi.lime)}: ${color('echo input text', ansi.white)}`,
-        `${color('  pwd', ansi.bold, ansi.lime)}: ${color('print current path', ansi.white)}`,
-        `${color('  uname', ansi.bold, ansi.lime)}: ${color('show kernel and system identity', ansi.white)}`,
-        `${color('  date', ansi.bold, ansi.lime)}: ${color('show current time', ansi.white)}`,
-        `${color('  delay', ansi.bold, ansi.lime)}: ${color('output text after a delay', ansi.white)}`,
+        ansis.bold.underline.fg(184)('🧰 Available Commands & Purpose'),
+        `${ansis.bold.fg(118)('  fastfetch')}: ${ansis.whiteBright('show system information panel')}`,
+        `${ansis.bold.fg(118)('  clear')}: ${ansis.whiteBright('clear terminal content')}`,
+        `${ansis.bold.fg(118)('  reset')}: ${ansis.whiteBright('restore initial history and input state')}`,
+        `${ansis.bold.fg(118)('  help')}: ${ansis.whiteBright('show command list and purpose')}`,
+        `${ansis.bold.fg(118)('  whoami')}: ${ansis.whiteBright('show author profile')}`,
+        `${ansis.bold.fg(118)('  echo')}: ${ansis.whiteBright('echo input text')}`,
+        `${ansis.bold.fg(118)('  pwd')}: ${ansis.whiteBright('print current path')}`,
+        `${ansis.bold.fg(118)('  uname')}: ${ansis.whiteBright('show kernel and system identity')}`,
+        `${ansis.bold.fg(118)('  date')}: ${ansis.whiteBright('show current time')}`,
+        `${ansis.bold.fg(118)('  delay')}: ${ansis.whiteBright('output text after a delay')}`,
         rainbowDivider,
     ].join('\n'))
     return true

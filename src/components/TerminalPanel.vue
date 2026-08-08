@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import '@xterm/xterm/css/xterm.css'
+import {Ansis} from 'ansis'
 import {FitAddon} from '@xterm/addon-fit'
 import {Terminal} from '@xterm/xterm'
 import {computed, ref, shallowRef, watch} from 'vue'
 import {useEventListener, useResizeObserver} from '@vueuse/core'
-import {ansi, color, splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
+import {splitTerminalText, type TerminalAction, type TerminalSender} from '@/utils/terminal'
 import {WebLinksAddon} from "@xterm/addon-web-links";
 import {useMounted} from "@/utils/mounted.ts";
+
+const ansis = new Ansis(2)
 
 const props = withDefaults(defineProps<{
   prompt?: string
@@ -156,7 +159,7 @@ const submit = async () => {
       }
       case 'object': { //object为error, 打印错误后不继续处理
         sender('\n')
-        sender(color(`error on processing command!\n${result.stack}`, ansi.red))
+        sender(ansis.fg(203)(`error on processing command!\n${result.stack}`))
         break loop
       }
       case 'undefined': { //undefined需要看情况

@@ -1,32 +1,35 @@
-import {ansi, color, type TerminalAction} from "@/utils/terminal.ts";
+import {Ansis} from "ansis";
+import {type TerminalAction} from "@/utils/terminal.ts";
+
+const ansis = new Ansis(2)
 
 const whoami: TerminalAction = (rawCommand, sender) => {
     if (rawCommand.trim() !== 'whoami') {
         return
     }
     sender([
-        color(' 👤 WHOAMI ', ansi.bold, ansi.inverse, ansi.magenta),
-        color('Profile', ansi.bold, ansi.underline, ansi.magenta),
-        `${color('  GitHub', ansi.bold, ansi.blue)}: ${color('https://github.com/magic-cucumber', ansi.white)}`,
-        `${color('  ID', ansi.bold, ansi.blue)}: ${color('kagg886 (magic-cucumber)', ansi.white)}`,
-        `${color('  Bio', ansi.bold, ansi.blue)}: ${color('happy cute and not furry', ansi.white, ansi.italic)}`,
-        `${color('  Website', ansi.bold, ansi.blue)}: ${color('https://kagg886.top', ansi.white)}`,
+        ansis.bold.inverse.fg(201)(' 👤 WHOAMI '),
+        ansis.bold.underline.fg(201)('Profile'),
+        `${ansis.bold.fg(63)('  GitHub')}: ${ansis.whiteBright('https://github.com/magic-cucumber')}`,
+        `${ansis.bold.fg(63)('  ID')}: ${ansis.whiteBright('kagg886 (magic-cucumber)')}`,
+        `${ansis.bold.fg(63)('  Bio')}: ${ansis.whiteBright.italic('happy cute and not furry')}`,
+        `${ansis.bold.fg(63)('  Website')}: ${ansis.whiteBright('https://kagg886.top')}`,
         '',
-        color('Social Media', ansi.bold, ansi.underline, ansi.magenta),
-        `${color('  Linux DO', ansi.bold, ansi.blue)}: ${color('https://linux.do/u/kagg886/summary', ansi.white)}`,
-        `${color('  Others', ansi.bold, ansi.blue)}: ${color('to be added', ansi.white)}`,
+        ansis.bold.underline.fg(201)('Social Media'),
+        `${ansis.bold.fg(63)('  Linux DO')}: ${ansis.whiteBright('https://linux.do/u/kagg886/summary')}`,
+        `${ansis.bold.fg(63)('  Others')}: ${ansis.whiteBright('to be added')}`,
         '',
-        color('Highlights', ansi.bold, ansi.underline, ansi.orange),
-        `${color('  Focus', ansi.bold, ansi.green)}: ${color('Pixiv-MultiPlatform (cross-platform third-party Pixiv client)', ansi.white)}`,
-        `${color('  Public repos', ansi.bold, ansi.green)}: ${color('17 (14 owned)', ansi.white)}`,
-        `${color('  Community', ansi.bold, ansi.green)}: ${color('8 followers, 0 following', ansi.white)}`,
-        `${color('  Repo impact', ansi.bold, ansi.green)}: ${color('104 total stars, 8 total forks (owned repos)', ansi.white)}`,
-        `${color('  Top projects', ansi.bold, ansi.green)}: ${color('Pixiv-MultiPlatform(100★), wvbridge(2★), mcp-gateway(1★)', ansi.white)}`,
-        `${color('  Main stacks', ansi.bold, ansi.green)}: ${color('Kotlin, Vue, TypeScript, C++', ansi.white)}`,
-        `${color('  Recent activity', ansi.bold, ansi.green)}: ${color('magic-cucumber, wvbridge, Pixiv-MultiPlatform', ansi.white)}`,
+        ansis.bold.underline.fg(214)('Highlights'),
+        `${ansis.bold.greenBright('  Focus')}: ${ansis.whiteBright('Pixiv-MultiPlatform (cross-platform third-party Pixiv client)')}`,
+        `${ansis.bold.greenBright('  Public repos')}: ${ansis.whiteBright('17 (14 owned)')}`,
+        `${ansis.bold.greenBright('  Community')}: ${ansis.whiteBright('8 followers, 0 following')}`,
+        `${ansis.bold.greenBright('  Repo impact')}: ${ansis.whiteBright('104 total stars, 8 total forks (owned repos)')}`,
+        `${ansis.bold.greenBright('  Top projects')}: ${ansis.whiteBright('Pixiv-MultiPlatform(100★), wvbridge(2★), mcp-gateway(1★)')}`,
+        `${ansis.bold.greenBright('  Main stacks')}: ${ansis.whiteBright('Kotlin, Vue, TypeScript, C++')}`,
+        `${ansis.bold.greenBright('  Recent activity')}: ${ansis.whiteBright('magic-cucumber, wvbridge, Pixiv-MultiPlatform')}`,
         '',
-        color('Note', ansi.bold, ansi.underline, ansi.red) + ': ' + color('This account is used to stay connected after the main account was blocked.', ansi.white),
-        color('Legacy account status', ansi.bold, ansi.strikethrough, ansi.dim) + ': ' + color('main account reachable', ansi.strikethrough, ansi.dim),
+        ansis.bold.underline.fg(203)('Note') + ': ' + ansis.whiteBright('This account is used to stay connected after the main account was blocked.'),
+        ansis.bold.strikethrough.gray('Legacy account status') + ': ' + ansis.strikethrough.gray('main account reachable'),
     ].join('\n'))
     return true
 }

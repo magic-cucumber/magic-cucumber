@@ -1,66 +1,42 @@
 import {Ansis} from "ansis";
 import {type TerminalSender} from "@/utils/terminal.ts";
 
-const ansi = new Ansis(1)
-const reset = ansi.reset.open
-const cursor = {
-    columnOne: "\u001b[1G",
-    upSixteen: "\u001b[16A",
-    rightThirtyFour: "\u001b[34C",
-}
+const ansis = new Ansis(2)
 
-const infoLine = (label: string, value: string) =>
-    `${cursor.rightThirtyFour}${reset}${ansi.bold.open}${ansi.yellow.open}${label}${reset}: ${reset}${value}`
+export const line = [
+    `${ansis.fg(118)("                     ..'")}          ${ansis.bold.fg(118)('886kagg@Ciallo')}`,
+    `${ansis.fg(118)('                 ,xNMM.')}           ${ansis.bold.fg(118)('--------------')}`,
+    `${ansis.fg(118)('               .OMMMMo')}            ${ansis.bold.fg(184)('OS')}: ${ansis.bold.fg(118)('macOS Tahoe 26.4 (25E246) arm64')}`,
+    `${ansis.fg(118)('               lMM"')}               ${ansis.bold.fg(184)('Host')}: ${ansis.bold.fg(118)('MacBook Air (15-inch, M4, 2025)')}`,
+    `${ansis.fg(118)('     .;loddo:.  .olloddol;.')}       ${ansis.bold.fg(184)('Kernel')}: ${ansis.bold.fg(118)('Darwin 25.4.0')}`,
+    `${ansis.fg(118)('   cKMMMMMMMMMMNWMMMMMMMMMM0:')}     ${ansis.bold.fg(184)('Uptime')}: ${ansis.bold.fg(118)('1 day, 8 hours, 20 mins')}`,
+    `${ansis.fg(184)(' .KMMMMMMMMMMMMMMMMMMMMMMMWd.')}     ${ansis.bold.fg(184)('Packages')}: ${ansis.bold.fg(118)('140 (brew), 10 (brew-cask)')}`,
+    `${ansis.fg(184)(' XMMMMMMMMMMMMMMMMMMMMMMMX.')}       ${ansis.bold.fg(184)('Shell')}: ${ansis.bold.fg(118)('zsh 5.9')}`,
+    `${ansis.fg(203)(';MMMMMMMMMMMMMMMMMMMMMMMM:')}        ${ansis.bold.fg(184)('Display (Color LCD)')}: ${ansis.bold.fg(118)('3420x2214 @ 2x in 15", 60')}`,
+    `${ansis.fg(203)(':MMMMMMMMMMMMMMMMMMMMMMMM:')}        ${ansis.bold.fg(184)('WM')}: ${ansis.bold.fg(118)('Quartz Compositor 1.600.0')}`,
+    `${ansis.fg(203)('.MMMMMMMMMMMMMMMMMMMMMMMX.')}        ${ansis.bold.fg(184)('WM Theme')}: ${ansis.bold.fg(118)('Multicolor (Light)')}`,
+    `${ansis.fg(203)(' kMMMMMMMMMMMMMMMMMMMMMMMMWd.')}     ${ansis.bold.fg(184)('Theme')}: ${ansis.bold.fg(118)('Liquid Glass')}`,
+    `${ansis.fg(201)(" 'XMMMMMMMMMMMMMMMMMMMMMMMMMMk")}    ${ansis.bold.fg(184)('Font')}: ${ansis.bold.fg(118)('.AppleSystemUIFont [System], Helvetica [')}`,
+    `${ansis.fg(201)("  'XMMMMMMMMMMMMMMMMMMMMMMMMK.")}    ${ansis.bold.fg(184)('Cursor')}: ${ansis.bold.fg(118)('Fill - Black, Outline - White (32px)')}`,
+    `${ansis.fg(99)('    kMMMMMMMMMMMMMMMMMMMMMMd')}      ${ansis.bold.fg(184)('Terminal')}: ${ansis.bold.fg(118)('Apple Terminal 470')}`,
+    `${ansis.fg(63)('     ;KMMMMMMMWXXWMMMMMMMk.')}       ${ansis.bold.fg(184)('Terminal Font')}: ${ansis.bold.fg(118)('AndaleMono (12pt)')}`,
+    `${ansis.fg(63)(`       "cooc*"    "*coo'"`)}         ${ansis.bold.fg(184)('CPU')}: ${ansis.bold.fg(118)('Apple M4 (10) @ 4.46 GHz')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('GPU')}: ${ansis.bold.fg(118)('Apple M4 (10) @ 1.47 GHz [Integrated]')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('Memory')}: ${ansis.bold.fg(118)('20.86 GiB / 24.00 GiB ')}${ansis.bold.fg(203)('(87%)')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('Swap')}: ${ansis.bold.fg(118)('7.08 GiB / 8.00 GiB ')}${ansis.bold.fg(203)('(88%)')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('Disk (/)')}: ${ansis.bold.fg(118)('381.09 GiB / 460.43 GiB ')}${ansis.bold.fg(203)('(83%)')}${ansis.bold.fg(118)(' - apfs')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('Battery (bq40z651)')}: ${ansis.bold.fg(118)('100% [AC connected]')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('Power Adapter')}: ${ansis.bold.fg(118)('35W USB-C Power Adapter')}`,
+    `${' '.repeat(34)}${ansis.bold.fg(184)('Locale')}: ${ansis.bold.fg(118)('zh_CN.UTF-8')}`,
+    '',
+    `${' '.repeat(34)}${ansis.bg(240)('   ')}${ansis.bgRed('   ')}${ansis.bgGreen('   ')}${ansis.bgYellow('   ')}${ansis.bgBlue('   ')}${ansis.bgMagenta('   ')}${ansis.bgCyan('   ')}${ansis.bgWhite('   ')}`,
+    '',
+].join("\n")
 
-const lines = [
-    `${ansi.bold.open}${ansi.green.open}                     ..'`,
-    `                 ,xNMM.`,
-    `               .OMMMMo`,
-    `               lMM"`,
-    `     .;loddo:.  .olloddol;.`,
-    `   cKMMMMMMMMMMNWMMMMMMMMMM0:`,
-    ` ${ansi.yellow.open}.KMMMMMMMMMMMMMMMMMMMMMMMWd.`,
-    ` XMMMMMMMMMMMMMMMMMMMMMMMX.`,
-    `${ansi.redBright.open};MMMMMMMMMMMMMMMMMMMMMMMM:`,
-    `:MMMMMMMMMMMMMMMMMMMMMMMM:`,
-    `${ansi.red.open}.MMMMMMMMMMMMMMMMMMMMMMMX.`,
-    ` kMMMMMMMMMMMMMMMMMMMMMMMMWd.`,
-    ` ${ansi.magenta.open}'XMMMMMMMMMMMMMMMMMMMMMMMMMMk`,
-    `  'XMMMMMMMMMMMMMMMMMMMMMMMMK.`,
-    `    ${ansi.blue.open}kMMMMMMMMMMMMMMMMMMMMMMd`,
-    `     ;KMMMMMMMWXXWMMMMMMMk.`,
-    `       "cooc*"    "*coo'${reset}${cursor.columnOne}${cursor.upSixteen}${reset}${cursor.rightThirtyFour}${ansi.bold.open}${ansi.green.open}886kagg${reset}@${ansi.bold.open}${ansi.green.open}Ciallo${reset}`,
-    `${cursor.rightThirtyFour}--------------`,
-    infoLine("OS", "macOS  27.0 (26A5388g) arm64"),
-    infoLine("Host", "MacBook Air (15-inch, M4, 2025)"),
-    infoLine("Kernel", "Darwin 27.0.0"),
-    infoLine("Uptime", "11 days, 4 hours, 20 mins"),
-    infoLine("Packages", "131 (brew), 17 (brew-cask)"),
-    infoLine("Shell", "zsh 5.9"),
-    infoLine("Display (Color LCD)", "3420x2214 @ 2x in 15\", 60 Hz [Built-in] *"),
-    infoLine("WM", "Quartz Compositor 1.600.0"),
-    infoLine("WM Theme", "Multicolor (Dark)"),
-    infoLine("Theme", "Liquid Glass"),
-    infoLine("Font", ".AppleSystemUIFont [System], Helvetica [User]"),
-    infoLine("Cursor", "Fill - Black, Outline - White (32px)"),
-    infoLine("Terminal", "ghostty 1.3.1"),
-    infoLine("Terminal Font", "Maple Mono NF CN (15pt)"),
-    infoLine("CPU", "Apple M4 (10) @ 4.46 GHz"),
-    infoLine("GPU", "Apple M4 (10) @ 1.47 GHz [Integrated]"),
-    infoLine("Memory", `17.97 GiB / 24.00 GiB (${ansi.yellowBright("75%")})`),
-    infoLine("Swap", `722.81 MiB / 2.00 GiB (${ansi.green("35%")})`),
-    infoLine("Disk (/)", `408.00 GiB / 460.43 GiB (${ansi.redBright("89%")}) - apfs [Read-only]`),
-    infoLine("Battery (bq40z651)", `${ansi.yellowBright("34%")} (1 hour, 12 mins remaining) [Discharging]`),
-    infoLine("Locale", "en_US.UTF-8"),
-    cursor.rightThirtyFour,
-    `${cursor.rightThirtyFour}${reset}${ansi.bgBlack.open}   ${ansi.bgRed.open}   ${ansi.bgGreen.open}   ${ansi.bgYellow.open}   ${ansi.bgBlue.open}   ${ansi.bgMagenta.open}   ${ansi.bgCyan.open}   ${ansi.bgWhite.open}   ${reset}`,
-    `${cursor.rightThirtyFour}${ansi.bgGray.open}   ${ansi.bgRedBright.open}   ${ansi.bgGreenBright.open}   ${ansi.bgYellowBright.open}   ${ansi.bgBlueBright.open}   ${ansi.bgMagentaBright.open}   ${ansi.bgCyanBright.open}   ${ansi.bgWhiteBright.open}   ${reset}`,
-]
-
-export default async function (command: string, sender: TerminalSender): Promise<boolean> {
+export const handler = async function (command: string, sender: TerminalSender): Promise<boolean> {
     if (!command.startsWith("fastfetch")) {
         return false
     }
-    sender(lines.join("\n"))
+    sender(line)
     return true
 }
